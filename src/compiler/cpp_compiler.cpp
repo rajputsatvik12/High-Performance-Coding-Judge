@@ -6,9 +6,9 @@
 #include <fcntl.h>
 #include <vector>
 
-CompilationResult CppCompiler::compile(const Submission& submission){
-    std::filesystem::path path_to_executable = (submission.source_file.parent_path()/"main_exec");
-    std::string source = submission.source_file.string();
+CompilationResult CppCompiler::compile(const SubmissionRecord& submission){
+    std::filesystem::path path_to_executable = "submissions/" + std::to_string(submission.submission_id) + "/main_exec";
+    std::string source = "submissions/" + std::to_string(submission.submission_id) + "/source.cpp";
     std::string output = path_to_executable.string();
 
     char* argv[] = {

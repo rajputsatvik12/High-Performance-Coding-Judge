@@ -36,7 +36,7 @@ uint64_t ExecutionResult::get_submission_id() const{
     return this -> submission_id;
 }
 
-std::string ExecutionResult::get_problem_id() const{
+int ExecutionResult::get_problem_id() const{
     return this -> problem_id;
 }
 
@@ -50,7 +50,7 @@ ExecutionResult::ExecutionResult(
     size_t peak_memory,
     std::string error_message,
     uint64_t submission_id,
-    std::string problem_id
+    int problem_id
 )
     :success(success),
     exit_code(exit_code),
@@ -64,7 +64,7 @@ ExecutionResult::ExecutionResult(
     problem_id(problem_id)
 {}
 
-ExecutionResult ExecutionResult::successful_execution(std::filesystem::path path_to_stdout, std::filesystem::path path_to_stderr, uint64_t execution_time_ms, size_t peak_memory, uint64_t submission_id, std::string problem_id){
+ExecutionResult ExecutionResult::successful_execution(std::filesystem::path path_to_stdout, std::filesystem::path path_to_stderr, uint64_t execution_time_ms, size_t peak_memory, uint64_t submission_id, int problem_id){
     return ExecutionResult(
         true,
         0,
@@ -79,7 +79,7 @@ ExecutionResult ExecutionResult::successful_execution(std::filesystem::path path
     );
 }
 
-ExecutionResult ExecutionResult::failed_execution(int exit_code, terminationSignal termination_signal, std::filesystem::path path_to_stdout, std::filesystem::path path_to_stderr, uint64_t execution_time_ms, size_t peak_memory, uint64_t submission_id, std::string problem_id){
+ExecutionResult ExecutionResult::failed_execution(int exit_code, terminationSignal termination_signal, std::filesystem::path path_to_stdout, std::filesystem::path path_to_stderr, uint64_t execution_time_ms, size_t peak_memory, uint64_t submission_id, int problem_id){
     return ExecutionResult(
         false,
         exit_code,
@@ -94,7 +94,7 @@ ExecutionResult ExecutionResult::failed_execution(int exit_code, terminationSign
     );
 }
 
-ExecutionResult ExecutionResult::internal_error(std::string error_message, uint64_t submission_id, std::string problem_id){
+ExecutionResult ExecutionResult::internal_error(std::string error_message, uint64_t submission_id, int problem_id){
     return ExecutionResult(
         false,
         0,

@@ -5,7 +5,7 @@
 
 class CppExecutor : public Executor{
     public:
-        ExecutionResult execute(const CompilationResult& compilation_result, int test_number) override;
+        ExecutionResult execute(const CompilationResult& compilation_result, const TestcaseRecord& testcase, int test_number, const ProblemRecord& problem) override;
 };
 
 #endif

@@ -23,26 +23,26 @@ terminationSignal map_signal(int signal){
     return terminationSignal::SIGOTHER_;
 }
 
-ExecutionResult CppExecutor::execute(const CompilationResult& compilation_result, int test_number){
+ExecutionResult CppExecutor::execute(const CompilationResult& compilation_result, const TestcaseRecord& testcase, int test_number, const ProblemRecord& problem){
     
     SandBox sandbox(compilation_result);
 
-    if(!sandbox.get_limits()){
-        
-        return ExecutionResult::internal_error("Cant Read constraints", compilation_result.get_submission_id(), compilation_result.get_problem_id());
-    }
+    time_limit = problem.time_limit;
+    memory_limit = problem.memory_limit_kb * 1024;
+    // if(!sandbox.get_limits()){
+    //     return ExecutionResult::internal_error("Cant Read constraints", compilation_result.get_submission_id(), compilation_result.get_problem_id());
+    // }
     
     if(!sandbox.set_cgroup_limits()){
         sandbox.destroy_group();
         return ExecutionResult::internal_error("CGroup failed", compilation_result.get_submission_id(), compilation_result.get_problem_id());
     }
 
-    std::filesystem::path path_to_tests = "problems/" + compilation_result.get_problem_id() + "/tests";
     std::filesystem::path path_ = "submissions/" + (std::to_string(compilation_result.get_submission_id()));
-    std::filesystem::path input_filepath = "input" + std::to_string(test_number) + ".txt";
+    std::filesystem::path input_filepath = testcase.input_path;
     std::filesystem::path error_filepath = "user_error" + std::to_string(test_number) + ".txt";
     std::filesystem::path output_filepath = "output" + std::to_string(test_number) + ".txt";
-    int input_fd = open((path_to_tests/input_filepath).c_str(), O_RDONLY);
+    int input_fd = open((input_filepath).c_str(), O_RDONLY);
     int output_fd = open((path_/output_filepath).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     int error_fd = open((path_/error_filepath).c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
@@ -132,12 +132,10 @@ ExecutionResult CppExecutor::execute(const CompilationResult& compilation_result
 
     }
 
-
-
     std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
 
     uint64_t submission_id = compilation_result.get_submission_id();
-    std::string problem_id = compilation_result.get_problem_id();
+    int problem_id = compilation_result.get_problem_id();
     
     std::filesystem::path path_to_stdout = path_/output_filepath;
     std::filesystem::path path_to_stderr = path_/error_filepath;

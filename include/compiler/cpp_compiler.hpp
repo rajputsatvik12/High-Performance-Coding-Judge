@@ -5,7 +5,7 @@
 
 class CppCompiler : public Compiler{
     public:
-        CompilationResult compile(const Submission& submission) override;
+        CompilationResult compile(const SubmissionRecord& submission) override;
 };
 
 #endif

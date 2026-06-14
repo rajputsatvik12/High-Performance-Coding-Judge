@@ -6,6 +6,8 @@
 #include "executor/executor.hpp"
 #include "core/validator.hpp"
 #include "core/verdict.hpp"
+#include "db/problem_repo.hpp"
+#include "db/testcase_repo.hpp"
 #include <memory>
 
 struct JudgeResult{
@@ -13,20 +15,23 @@ struct JudgeResult{
     uint64_t execution_time_ms;
     size_t peak_memory;
     uint64_t submission_id;
-    std::string problem_id;
+    int problem_id;
+    std::optional<int> testcase_id;
 
     JudgeResult(
         Verdict verdict,
         uint64_t execution_time_ms,
         size_t peak_memory,
         uint64_t submission_id,
-        std::string problem_id
+        int problem_id,
+        std::optional<int> testcase_id
     )
     :verdict(verdict),
     execution_time_ms(execution_time_ms),
     peak_memory(peak_memory),
     submission_id(submission_id),
-    problem_id(problem_id){}
+    problem_id(problem_id),
+    testcase_id(testcase_id){}
 };
 
 class Judge{
@@ -37,7 +42,7 @@ class Judge{
             std::unique_ptr<Validator> validator
         );
 
-        JudgeResult process_submission(const Submission& submission);
+        std::vector<JudgeResult> process_submission(const SubmissionRecord& submission, const ProblemRecord& problem, const std::vector<TestcaseRecord>& testcases);
 
     private:
         std::unique_ptr<Compiler> compiler;

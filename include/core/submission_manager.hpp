@@ -2,6 +2,11 @@
 #define SUBMISSION_MANAGER_H
 
 #include "core/judge.hpp"
+#include "db/database.hpp"
+#include "db/submission_repo.hpp"
+#include "db/problem_repo.hpp"
+#include "db/result_repo.hpp"
+#include "db/testcase_repo.hpp"
 #include <queue>
 #include <mutex>
 #include <atomic>
@@ -9,18 +14,25 @@
 
 class SubmissionManager{
     private:
-        std::queue<Submission> submission_queue;
-        std::atomic<uint64_t> next_submission_id{1};
-        std::mutex queue_mutex;
+        SubmissionRepo& submission_repo;
+        ProblemRepo& problem_repo;
+        ResultRepo& result_repo;
+        TestcaseRepo& testcase_repo;
 
     public:
-        SubmissionManager() = default;
+        SubmissionManager(SubmissionRepo& submission_repo, ProblemRepo& problem_repo, ResultRepo& result_repo, TestcaseRepo& testcase_repo);
 
-        uint64_t accept_submission(const std::filesystem::path& source_file, const std::string& problem_id, Language language);
+        uint64_t accept_submission(const std::string& source_file, int user_id, const int problem_id, Language language);
 
-        void process_submissions(std::unique_ptr<Compiler> compiler,
-            std::unique_ptr<Executor> executor,
-            std::unique_ptr<Validator> validator, Judge& judge);
+        void process_submissions(Judge& judge);
+
+        SubmissionRecord get_submission(uint64_t submission_id);
+
+        std::vector<ResultRecord> get_results(uint64_t submission_id);
+
+        ProblemRecord get_problem(int problem_id);
+
+        std::vector<ProblemRecord> get_problems();
 };
 
 #endif

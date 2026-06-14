@@ -26,123 +26,127 @@ Verdict Judge::classify_signal(terminationSignal termination_signal, size_t peak
 
 }
 
-JudgeResult Judge::process_submission(const Submission& submission){
+std::vector<JudgeResult> Judge::process_submission(const SubmissionRecord& submission, const ProblemRecord& problem, const std::vector<TestcaseRecord>& testcases){
     
     CompilationResult compilation_result = compiler -> compile(submission);
-    
+    std::vector<JudgeResult> results;
+
     if(!compilation_result.is_successful()){
         /*Compilation Error*/
-        return JudgeResult(
+        results.push_back(JudgeResult(
             Verdict::CompilationError,
             0,
             0,
             compilation_result.get_submission_id(), 
-            compilation_result.get_problem_id()
-        );
+            compilation_result.get_problem_id(),
+            std::nullopt
+        ));
+        return results;
     }
-
-    Json::Value root;
-    Json::Reader reader;
-    std::filesystem::path path_to_config = "problems/" + submission.problem_id + "/config.json";
-    std::fstream config(path_to_config);
-    if(!reader.parse(config, root)){
-        std::cout << "Could not read Number of testcases" << '\n';
-        return JudgeResult(
-            Verdict::InternalError,
-            -1,
-            -1,
-            submission.submission_id,
-            submission.problem_id
-        );
-    }
+    
+    int cnt = 0;
     uint64_t execution_time_ms = 0;
     size_t peak_memory = 0;
-    int num_tests = root["num_of_testcases"].asInt();
-    
-    for(int test_number=1;test_number<=num_tests;test_number++){
+    for(const auto& testcase : testcases){
 
-        ExecutionResult execution_result = executor -> execute(compilation_result, test_number);
+        ExecutionResult execution_result = executor -> execute(compilation_result, testcase, ++cnt, problem);
 
         if(!execution_result.get_internal_error().empty()){
             /*Internal error*/
             std::cout << execution_result.get_internal_error() << '\n';
-            return JudgeResult(
+            results.push_back(JudgeResult(
                 Verdict::InternalError,
                 execution_result.get_execution_time_ms(),
                 execution_result.get_peak_memory(),
                 compilation_result.get_submission_id(),
-                compilation_result.get_problem_id()
-            );
+                compilation_result.get_problem_id(),
+                testcase.testcase_id
+            ));
+            return results;
         }
 
         if(execution_result.get_execution_time_ms() > time_limit){
-            return JudgeResult(
+            results.push_back(JudgeResult(
                 Verdict::TimeLimitExceeded,
                 execution_result.get_execution_time_ms(),
                 execution_result.get_peak_memory(),
                 compilation_result.get_submission_id(),
-                compilation_result.get_problem_id()
-            );
+                compilation_result.get_problem_id(),
+                testcase.testcase_id
+            ));
+            return results;
         }
 
         if(execution_result.get_termination_signal() != terminationSignal::NONE){
             /*Classify signal*/
             Verdict verdict = classify_signal(execution_result.get_termination_signal(), execution_result.get_peak_memory(), memory_limit);
 
-            return JudgeResult(
+            results.push_back(JudgeResult(
                 verdict,
                 execution_result.get_execution_time_ms(),
                 execution_result.get_peak_memory(),
                 execution_result.get_submission_id(),
-                execution_result.get_problem_id()
-            );
+                execution_result.get_problem_id(),
+                testcase.testcase_id
+            ));
+            return results;
         }
 
         if(execution_result.get_exit_code() != 0){
             /*Runtime error*/
-            return JudgeResult(
+            results.push_back(JudgeResult(
                 Verdict::RuntimeError,
                 execution_result.get_execution_time_ms(),
                 execution_result.get_peak_memory(),
                 compilation_result.get_submission_id(),
-                compilation_result.get_problem_id()
-            );
+                compilation_result.get_problem_id(),
+                testcase.testcase_id
+            ));
+            return results;
         }
         
         std::filesystem::path user_output = execution_result.get_stdout_path();
-        std::filesystem::path expected_output = "problems/" + execution_result.get_problem_id() + "/tests/output" + std::to_string(test_number) + ".txt";
+        std::filesystem::path expected_output = testcase.expected_output_path;
         ValidatorResult validation_result = validator -> validate(user_output, expected_output);
+
         if(!validation_result.get_error_message().empty()){
             /*Internal Error*/
-            return JudgeResult(
+            results.push_back(JudgeResult(
                 Verdict::InternalError,
                 execution_result.get_execution_time_ms(),
                 execution_result.get_peak_memory(),
                 compilation_result.get_submission_id(),
-                compilation_result.get_problem_id()
-            );
+                compilation_result.get_problem_id(),
+                testcase.testcase_id
+            ));
+            return results;
         }
         
         if(!validation_result.get_match()){
             /*Wrong Answer*/
-            return JudgeResult(
+            results.push_back(JudgeResult(
                 Verdict::WrongAnswer,
                 execution_result.get_execution_time_ms(),
                 execution_result.get_peak_memory(),
                 compilation_result.get_submission_id(),
-                compilation_result.get_problem_id()
-            );
+                compilation_result.get_problem_id(),
+                testcase.testcase_id
+            ));
+            return results;
         }
         execution_time_ms = std::max(execution_time_ms, execution_result.get_execution_time_ms());
         peak_memory = std::max(peak_memory, execution_result.get_peak_memory());
-    }
 
-    /*Accepted*/
-    return JudgeResult(
-            Verdict::Accepted,
-            execution_time_ms,
-            peak_memory,
-            compilation_result.get_submission_id(),
-            compilation_result.get_problem_id()
-        );
+        /*Accepted*/
+        results.push_back(JudgeResult(
+                Verdict::Accepted,
+                execution_time_ms,
+                peak_memory,
+                compilation_result.get_submission_id(),
+                compilation_result.get_problem_id(),
+                testcase.testcase_id
+            ));
+        }
+
+    return results;
 }

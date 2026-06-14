@@ -16,13 +16,13 @@ uint64_t CompilationResult::get_submission_id() const{
     return this -> submission_id;
 }
 
-std::string CompilationResult::get_problem_id() const{
+int CompilationResult::get_problem_id() const{
     return this -> problem_id;
 }
 
 CompilationResult::CompilationResult(
     uint64_t submission_id,
-    std::string problem_id,
+    int problem_id,
     bool success,
     std::filesystem::path path,
     std::string error
@@ -34,7 +34,7 @@ CompilationResult::CompilationResult(
     error_message(error)
     {}
 
-CompilationResult CompilationResult::successful_compilation(std::filesystem::path path, uint64_t submission_id, std::string problem_id){
+CompilationResult CompilationResult::successful_compilation(std::filesystem::path path, uint64_t submission_id, int problem_id){
     return CompilationResult(
         submission_id,
         problem_id,
@@ -44,7 +44,7 @@ CompilationResult CompilationResult::successful_compilation(std::filesystem::pat
     );
 }
 
-CompilationResult CompilationResult::failed_compilation(std::string error, uint64_t submission_id, std::string problem_id){
+CompilationResult CompilationResult::failed_compilation(std::string error, uint64_t submission_id, int problem_id){
     return CompilationResult(
         submission_id,
         problem_id,
