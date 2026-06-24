@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Threads REQUIRED)
 find_package(libpqxx CONFIG REQUIRED)
 find_package(jsoncpp CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # =========================
 # Include directories
@@ -88,10 +89,14 @@ add_library(system_lib
 # =========================
 add_library(api_lib
     src/api/server.cpp
+    src/api/middleware.cpp
+    src/api/jwt_manager.cpp
 )
 
 target_link_libraries(api_lib
     Threads::Threads
+    OpenSSL::SSL 
+    OpenSSL::Crypto
 )
 
 # =========================

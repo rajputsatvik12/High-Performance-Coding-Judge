@@ -1,7 +1,6 @@
 #ifndef JUDGE_H
 #define JUDGE_H
 
-#include "core/submission.hpp"
 #include "compiler/compiler.hpp"
 #include "executor/executor.hpp"
 #include "core/validator.hpp"

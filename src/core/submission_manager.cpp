@@ -3,11 +3,13 @@
 #include <fstream>
 #include <filesystem>
 
-SubmissionManager::SubmissionManager(SubmissionRepo& submission_repo, ProblemRepo& problem_repo, ResultRepo& result_repo, TestcaseRepo& testcase_repo) :
+SubmissionManager::SubmissionManager(SubmissionRepo& submission_repo, ProblemRepo& problem_repo, ResultRepo& result_repo, TestcaseRepo& testcase_repo, UserRepo& user_repo, Judge& judge) :
     submission_repo(submission_repo),
     problem_repo(problem_repo),
     result_repo(result_repo),
-    testcase_repo(testcase_repo){}
+    testcase_repo(testcase_repo),
+    user_repo(user_repo),
+    judge(judge){}
 
 std::string to_string(Verdict verdict){
     const std::map<Verdict, std::string> mpp = {
@@ -23,15 +25,6 @@ std::string to_string(Verdict verdict){
     return mpp.at(verdict);
 }
 
-// Json::Value jsonify(const JudgeResult& result){
-//     Json::Value result_json;
-//     result_json["problem_id"] = result.problem_id;
-//     result_json["execution_time"] = result.execution_time_ms;
-//     result_json["memory"] = result.peak_memory;
-//     result_json["verdict"] = to_string(result.verdict);
-
-//     return result_json;
-// }
 
 uint64_t SubmissionManager::accept_submission(const std::string& source_code, int user_id, const int problem_id, Language language){
     
@@ -70,7 +63,7 @@ uint64_t SubmissionManager::accept_submission(const std::string& source_code, in
     return submission_id;
 }
 
-void SubmissionManager::process_submissions(Judge& judge){
+void SubmissionManager::process_submissions(){
     
     SubmissionRecord next_pending = submission_repo.get_next_pending();
     if(next_pending.submission_id == 0) return;
@@ -103,4 +96,12 @@ std::vector<ResultRecord> SubmissionManager::get_results(uint64_t submission_id)
 
 std::vector<ProblemRecord> SubmissionManager::get_problems(){
     return problem_repo.get_all();
+}
+
+UserRecord SubmissionManager::get_user(std::string& username){
+    return user_repo.get_by_username(username);
+}
+
+int SubmissionManager::create_user(std::string& username, std::string& password_hash, std::string& email){
+    return user_repo.create(username, password_hash, email);
 }

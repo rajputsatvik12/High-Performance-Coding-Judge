@@ -2,3 +2,7 @@
 build
 token.txt
 helper.txt
+.env
+jwt-cpp
+1_source.txt
+2_source.txt

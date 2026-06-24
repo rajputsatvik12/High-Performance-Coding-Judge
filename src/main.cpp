@@ -3,6 +3,7 @@
 #include "executor/cpp_executor.hpp"
 #include "core/judge.hpp"
 #include "api/server.hpp"
+#include "api/jwt_manager.hpp"
 #include <iostream>
 
 void menu(){
@@ -25,13 +26,24 @@ int main(int argc, char* argv[]) {
     try {
         Database db(conn);
         std::cout << "Database created" << '\n';
+        auto compiler = std::make_unique<CppCompiler>();
+        auto executor = std::make_unique<CppExecutor>();
+        auto validator = std::make_unique<Validator>();
+
+        Judge judge(
+            std::move(compiler),
+            std::move(executor),
+            std::move(validator)
+        );
+
         SubmissionRepo submission_repo(db);
         ProblemRepo problem_repo(db);
         ResultRepo result_repo(db);
         TestcaseRepo testcase_repo(db);
-        SubmissionManager manager(submission_repo, problem_repo, result_repo, testcase_repo);
-
-        ApiServer server(manager);
+        UserRepo user_repo(db);
+        SubmissionManager manager(submission_repo, problem_repo, result_repo, testcase_repo, user_repo, judge);
+        JWTManager jwt_manager;
+        ApiServer server(manager, jwt_manager);
         server.run(18080);
 
     // while(true){
@@ -61,15 +73,6 @@ int main(int argc, char* argv[]) {
     //     std::cout << "Source Code:" << '\n';
     //     std::cout << source_code << '\n';
 
-    //     auto compiler = std::make_unique<CppCompiler>();
-    //     auto executor = std::make_unique<CppExecutor>();
-    //     auto validator = std::make_unique<Validator>();
-
-    //     Judge judge(
-    //         std::move(compiler),
-    //         std::move(executor),
-    //         std::move(validator)
-    //     );
 
     //     uint64_t submission_id = manager.accept_submission(source_code, 1, problem_id, Language::Cpp);
         

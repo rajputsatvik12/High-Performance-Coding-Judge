@@ -17,7 +17,7 @@ class UserRepo{
 
     public:
         UserRepo(Database& db);
-        int create(std::string& username, std::string& password_hash);
+        int create(std::string& username, std::string& password_hash, std::string& email);
         bool exists(std::string& username);
         UserRecord get_by_id(int user_id);
         UserRecord get_by_username(std::string& username);

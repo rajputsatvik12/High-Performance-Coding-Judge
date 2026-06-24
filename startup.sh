@@ -27,4 +27,4 @@ echo "+cpu +memory +pids" | sudo tee "$CGROUP_PATH/cgroup.subtree_control" > /de
 
 # 5. Run judge
 echo "[+] Starting judge"
-./build/judge_engine
+JWT_MANAGER_KEY="rvhbveowu422pi3pu$%#%efef23@@#$" ./build/judge_engine

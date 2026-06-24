@@ -2,18 +2,18 @@
 
 UserRepo::UserRepo(Database& db) : db(db){}
 
-int UserRepo::create(std::string& username, std::string& password_hash){
+int UserRepo::create(std::string& username, std::string& password_hash, std::string& email){
     
     if(exists(username)) return -1;
 
     pqxx::work txn(db.get_connection());
     pqxx::result result = txn.exec_params(R"(
         INSERT INTO users 
-        (username, password_hash)
+        (username, password_hash, email)
         VALUES
-        ($1, $2)
+        ($1, $2, $3)
         RETURNING user_id;
-        )", username, password_hash);
+        )", username, password_hash, email);
 
     txn.commit();
 
